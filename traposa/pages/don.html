@@ -42,17 +42,21 @@
   <main class="donation-page">
     <div class="container">
       <div class="donation-header">
-        <h1 data-i18n="don_page_title">Fè Yon Don</h1>
-        <p data-i18n="don_page_subtitle">Chak kontribisyon, kèlkeswa ti kras li ye, ka chanje lavi yon timoun vilnerab ann Ayiti.</p>
+        <h1 data-i18n="don_page_title">Faire un Don</h1>
+        <p data-i18n="don_page_subtitle">Chaque contribution, même minime, peut changer la vie d'un enfant vulnérable en Haïti.</p>
       </div>
 
       <div class="donation-grid">
         <div class="donation-form-wrapper">
           <!-- Causes -->
           <div class="causes-section">
-            <h2 data-i18n="don_step1">1. Chwazi Koz ou vle sipote</h2>
+            <h2 data-i18n="don_step1">1. Choisissez la Cause que vous voulez soutenir</h2>
             <div class="causes-grid">
-              <div class="cause-card selected" data-cause="edikasyon">
+              <div class="cause-card selected" data-cause="general" data-cause-id="" data-cause-name="TRAPOSA Général">
+                <div class="cause-icon"><i data-lucide="heart-handshake"></i></div>
+                <div class="cause-info"><h4 data-i18n="cause_general_title">TRAPOSA Général / Autres</h4><p data-i18n="cause_general_desc">Soutenir l'organisation en général ou une autre cause non listée</p></div>
+              </div>
+              <div class="cause-card" data-cause="edikasyon">
                 <div class="cause-icon"><i data-lucide="book-open"></i></div>
                 <div class="cause-info"><h4 data-i18n="cause1_title">Edikasyon Timoun</h4><p data-i18n="cause1_desc">Asire aksè edikasyon pou tout timoun yo</p></div>
               </div>
@@ -69,7 +73,7 @@
 
           <!-- Amount -->
           <div class="form-section">
-            <h3><span class="step-number">2</span> <span data-i18n="don_step2">Chwazi Montant</span></h3>
+            <h3><span class="step-number">2</span> <span data-i18n="don_step2">Choisissez le Montant</span></h3>
             <div class="currency-selector">
               <button class="currency-btn selected" data-currency="HTG">HTG</button>
               <button class="currency-btn" data-currency="USD">USD</button>
@@ -83,15 +87,15 @@
             </div>
             <div class="amount-custom">
               <span class="currency-symbol">G</span>
-              <input type="number" class="form-input" data-i18n-placeholder="don_custom_amount" placeholder="Lòt montant" min="1">
+              <input type="number" class="form-input" data-i18n-placeholder="don_custom_amount" placeholder="Autre montant" min="1">
             </div>
           </div>
 
           <!-- Payment Method -->
           <div class="form-section">
-            <h3><span class="step-number">3</span> <span data-i18n="don_step3">Metòd Pèman</span></h3>
+            <h3><span class="step-number">3</span> <span data-i18n="don_step3">Méthode de Paiement</span></h3>
             <div class="payment-methods">
-              <!-- Metòd pèman chaje dinamikman soti nan Supabase -->
+              <!-- Méthodes de paiement chargées dynamiquement depuis Supabase -->
               <div class="payment-method-loading" style="display:flex;flex-direction:column;gap:0.75rem;">
                 <div style="height:58px;background:var(--clr-bg-soft);border-radius:var(--radius-lg);animation:pulse 1.5s infinite;"></div>
                 <div style="height:58px;background:var(--clr-bg-soft);border-radius:var(--radius-lg);animation:pulse 1.5s infinite 0.2s;"></div>
@@ -99,8 +103,19 @@
               </div>
             </div>
 
-            <!-- Enfòmasyon kont pèman (parèt lè yon metòd chwazi) -->
+            <!-- Informations du compte de paiement (méthodes manuelles: virement bancaire, etc.) -->
             <div id="payment-info-box" class="payment-info-box" style="display:none;"></div>
+
+            <!-- PLOP PLOP redirect panel (MonCash / NatCash / Kashpaw — automatique) -->
+            <div id="plop-redirect-section" class="plop-redirect-section" style="display:none;">
+              <div class="plop-redirect-box">
+                <div class="plop-redirect-icon"><i data-lucide="smartphone"></i></div>
+                <div class="plop-redirect-body">
+                  <h4 data-i18n="plop_intro_title">Paiement mobile automatique</h4>
+                  <p data-i18n-html="plop_intro_desc">Cliquez sur <strong>"Contribuer Maintenant"</strong> — une fenêtre de paiement sécurisée s’ouvrira automatiquement.</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Stripe Card Element -->
@@ -111,35 +126,36 @@
 
           <!-- Donor Info -->
           <div class="form-section">
-            <h3><span class="step-number">4</span> <span data-i18n="don_step4">Enfòmasyon Ou</span></h3>
+            <h3><span class="step-number">4</span> <span data-i18n="don_step4">Vos Informations</span></h3>
             <div class="donor-info-grid">
               <div class="form-group">
-                <label class="form-label" data-i18n="don_donor_name">Non (Opsyonèl)</label>
+                <label class="form-label" data-i18n="don_donor_phone">Téléphone (Optionnel)</label>
                 <input type="text" class="form-input" name="donor_name">
               </div>
               <div class="form-group">
-                <label class="form-label" data-i18n="don_donor_email">Imèl (Opsyonèl)</label>
+                <label class="form-label" data-i18n="don_donor_email">Email (Optionnel)</label>
                 <input type="email" class="form-input" name="donor_email">
               </div>
             </div>
-            <div class="anonymous-toggle">
-              <input type="checkbox" id="anonymous" name="is_anonymous">
-              <label for="anonymous" data-i18n="don_anonymous">Fè don sa a anonim</label>
-            </div>
+                <label class="checkbox-label">
+                  <input type="checkbox" name="is_anonymous">
+                  <span data-i18n="don_anonymous">Rester anonyme</span>
+                </label>
           </div>
 
           <div class="form-error" style="display: none;"></div>
 
-          <button type="submit" class="btn btn-primary btn-lg submit-donation-btn" style="width: 100%;">
-            <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
-            <span data-i18n="don_submit">Kontribye Kounye a</span>
-          </button>
+          <button type="button" class="submit-donation-btn btn btn-primary btn-large">
+          <i data-lucide="lock" style="width: 18px; height: 18px;"></i>
+          <span data-i18n="don_submit">Contribuer Maintenant</span>
+        </button>
         </div>
 
         <!-- Summary -->
         <aside class="donation-summary">
-          <h3 data-i18n="don_summary_title">Rezime Don</h3>
+          <h3 data-i18n="don_summary_title">Résumé du Don</h3>
           <div class="donation-ticker" style="margin-bottom: 1.5rem;">
+            <div class="ticker-header"><i data-lucide="activity"></i> <span data-i18n="don_recent">Derniers dons</span></div>
             <div class="ticker-header"><i data-lucide="activity"></i> <span data-i18n="don_recent">Dènye don</span></div>
             <div class="ticker-item"><span class="ticker-donor">Marie B.</span><span class="ticker-amount">G1,000</span></div>
             <div class="ticker-item"><span class="ticker-donor">Yon zanmi</span><span class="ticker-amount">$50</span></div>
@@ -209,12 +225,65 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <p class="footer-copyright" data-i18n="footer_copyright">© 2025 TRAPOSA. Tout dwa rezève.</p>
-        <p class="footer-tagline" data-i18n="footer_tagline">🇭🇹 Fèt pou Ayiti</p>
+        <p class="footer-copyright" data-i18n="footer_copyright">© 2025 TRAPOSA. Tous droits réservés.</p>
+        <p class="footer-tagline" data-i18n="footer_tagline">🇭🇹 Fait pour Haïti</p>
       </div>
     </div>
   </footer>
 
+  <style>
+    .pm-auto-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: .03em;
+      background: #d1fae5; color: #065f46;
+      border-radius: 20px; padding: 2px 7px;
+      margin-left: auto; flex-shrink: 0;
+    }
+    .plop-redirect-section { margin-top: 0.75rem; }
+    .plop-redirect-box {
+      display: flex; align-items: flex-start; gap: 1rem;
+      background: #f0fdf4; border: 1.5px solid #86efac;
+      border-radius: var(--radius-lg, 14px); padding: 1rem 1.25rem;
+    }
+    .plop-redirect-icon {
+      width: 42px; height: 42px; flex-shrink: 0;
+      background: #dcfce7; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #16a34a;
+    }
+    .plop-redirect-icon svg { width: 22px; height: 22px; }
+    .plop-redirect-body h4 { margin: 0 0 .35rem; font-size: .95rem; color: #14532d; }
+    .plop-redirect-body p  { margin: 0 0 .85rem; font-size: .85rem; color: #166534; line-height: 1.5; }
+    .plop-redirect-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+    .plop-redirect-hint { margin: .75rem 0 0 !important; font-size: .8rem !important; color: #4b5563 !important; }
+    .plop-pay-btn { display: inline-flex; align-items: center; gap: .5rem; }
+
+    /* PLOP in-page overlay */
+    #plopPaymentOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+    }
+    .plop-overlay-backdrop {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(4px);
+    }
+    .plop-overlay-card {
+      position: relative; z-index: 1;
+      background: #fff; border-radius: 20px;
+      padding: 2.5rem 2rem; width: 360px; max-width: 92vw;
+      text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+    .plop-overlay-spinner { margin: 0 auto 1.25rem; width: 52px; height: 52px; }
+    .plop-overlay-spinner svg { width: 52px; height: 52px; }
+    .plop-overlay-title { font-size: 1.15rem; font-weight: 700; color: #14532d; margin: 0 0 .35rem; }
+    .plop-overlay-amount { font-size: 1.5rem; font-weight: 800; color: #2d6a4f; margin: 0 0 .75rem; }
+    .plop-overlay-hint { font-size: .85rem; color: #6b7280; line-height: 1.5; margin: 0; }
+    .plop-overlay-cancel {
+      margin-top: 1.25rem; background: none; border: none;
+      color: #9ca3af; font-size: .8rem; cursor: pointer;
+    }
+    .plop-overlay-cancel:hover { color: #ef4444; }
+  </style>
   <script>lucide.createIcons();</script>
   <script src="../assets/js/supabase-client.js"></script>
   <script src="../assets/js/auth.js"></script>

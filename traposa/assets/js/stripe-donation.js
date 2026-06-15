@@ -101,7 +101,7 @@ function setupPaymentMethodObserver() {
 // Full payment flow: Edge Function creates PaymentIntent → stripe.confirmCardPayment
 async function confirmPayment({ amount, currency, donorEmail, donorName, causeName }) {
   if (!stripeInstance || !cardElement) {
-    throw new Error('Stripe pa disponib. Tanpri rafraîchi paj la.');
+    throw new Error('Stripe non disponible. Veuillez rafraîchir la page.');
   }
 
   // Step 1 — Call Supabase Edge Function to create PaymentIntent server-side

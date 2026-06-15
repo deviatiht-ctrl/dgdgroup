@@ -2,7 +2,7 @@
 <html lang="ht">
 <head>
   <meta charset="UTF-8">
-  <title>Metòd Pèman — Admin TRAPOSA</title>
+  <title>Méthodes de Paiement — Admin TRAPOSA</title>
   <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -71,7 +71,7 @@
         <li><a href="./galerie.html"         class="admin-nav-link"><i data-lucide="image"></i>Galeri</a></li>
         <li><a href="./dons.html"            class="admin-nav-link"><i data-lucide="heart"></i>Don</a></li>
         <li><a href="./equipe.html"          class="admin-nav-link"><i data-lucide="users"></i>Ekip</a></li>
-        <li><a href="./payment-methods.html" class="admin-nav-link active"><i data-lucide="credit-card"></i>Metòd Pèman</a></li>
+        <li><a href="./payment-methods.html" class="admin-nav-link active"><i data-lucide="credit-card"></i>Méthodes de Paiement</a></li>
         <li><a href="./parametres.html"      class="admin-nav-link"><i data-lucide="settings"></i>Paramèt</a></li>
       </ul>
     </nav>
@@ -81,19 +81,20 @@
   <main class="admin-main">
     <div class="admin-header">
       <div>
-        <h1>Metòd Pèman</h1>
-        <p style="color:#6b7280;font-size:0.875rem;margin-top:0.25rem;">Jere metòd pèman ki parèt nan paj don an. Mete non kont ak nimewo pou donatè yo ka voye kòb.</p>
+        <h1>Méthodes de Paiement</h1>
+        <p style="color:#6b7280;font-size:0.875rem;margin-top:0.25rem;">Gérer les méthodes de paiement qui apparaissent dans la page de dons. Ajoutez le nom du compte et le numéro pour que les donateurs puissent envoyer de l'argent.</p>
       </div>
       <button class="btn btn-primary" onclick="openAddModal()">
-        <i data-lucide="plus"></i> Ajoute Metòd
+        <i data-lucide="plus"></i> Ajouter une Méthode
       </button>
     </div>
 
     <div class="pm-info-banner">
       <i data-lucide="info"></i>
       <span>
-        Sèlman metòd ki <strong>aktif</strong> yo pral parèt nan paj don an. Lè yon donatè kilke sou yon metòd, li pral wè <strong>Non Kont</strong> ak <strong>Nimewo Kont</strong> ou mete isit la.
-        Pou <strong>Kat Kredi (Stripe)</strong>, mete <em>type = stripe</em> — li pral montre fòm kat kredi a.
+        Seules les méthodes <strong>actives</strong> apparaîtront dans la page de dons.
+        <strong>MonCash, NatCash, Kashpaw</strong> (<span style="background:#d1fae5;color:#065f46;border-radius:20px;padding:1px 7px;font-size:.8rem;font-weight:600;">Auto</span>) sont traitées automatiquement via l'API <strong>PLOP PLOP</strong> — aucune saisie manuelle requise.
+        Pour <strong>Carte Bancaire</strong>, choisissez <em>type = stripe</em>. Pour les virements bancaires, entrez le <strong>Nom</strong> et <strong>Numéro</strong> du compte.
       </span>
     </div>
 
@@ -101,23 +102,23 @@
       <table class="admin-table">
         <thead>
           <tr>
-            <th>Non Metòd</th>
-            <th>Non Kont</th>
-            <th>Nimewo Kont</th>
-            <th>Enstriksyon</th>
-            <th>Aktif</th>
-            <th>Aksyon</th>
+            <th>Nom de la Méthode</th>
+            <th>Nom du Compte</th>
+            <th>Numéro du Compte</th>
+            <th>Instructions</th>
+            <th>Actif</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="methodsTable">
-          <tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af;">Chajman...</td></tr>
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:#9ca3af;">Chargement...</td></tr>
         </tbody>
       </table>
     </div>
 
     <!-- Legend for icons -->
     <div style="margin-top:1rem;font-size:0.8rem;color:#9ca3af;">
-      <strong>Icòn Lucide disponib:</strong> smartphone, wallet, credit-card, building, globe, dollar-sign, euro, landmark, qr-code
+      <strong>Icônes Lucide disponibles:</strong> smartphone, wallet, credit-card, building, globe, dollar-sign, euro, landmark, qr-code
     </div>
   </main>
 
@@ -125,14 +126,14 @@
   <div id="paymentModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modalTitle">Ajoute Metòd Pèman</h2>
+        <h2 id="modalTitle">Ajouter une Méthode de Paiement</h2>
         <button class="modal-close">&times;</button>
       </div>
 
       <form id="paymentForm">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label required">Non Metòd</label>
+            <label class="form-label required">Nom de la Méthode</label>
             <input type="text" class="form-input" id="pmName" placeholder="ex: MonCash" required>
           </div>
           <div class="form-group">
@@ -140,45 +141,53 @@
             <select class="form-select" id="pmType">
               <option value="moncash">moncash</option>
               <option value="natcash">natcash</option>
-              <option value="stripe">stripe (Kat Kredi)</option>
-              <option value="bank">bank (Vèman Bancè)</option>
+              <option value="stripe">stripe (Carte Bancaire)</option>
+              <option value="bank">bank (Virement Bancaire)</option>
               <option value="paypal">paypal</option>
               <option value="other">other</option>
             </select>
-            <p class="form-hint">Pou Stripe, chwazi "stripe" — fòm kat kredi a pral parèt otomatikman</p>
+            <p class="form-hint">Pour Stripe, choisissez "stripe" — le formulaire de carte bancaire apparaîtra automatiquement</p>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Non Kont <span style="color:#6b7280;font-weight:400;">(Non Titilè)</span></label>
+            <label class="form-label">Nom du Compte <span style="color:#6b7280;font-weight:400;">(Nom du Titulaire)</span></label>
             <input type="text" class="form-input" id="pmAccountName" placeholder="ex: TRAPOSA HAITI ONG">
           </div>
           <div class="form-group">
-            <label class="form-label">Nimewo Kont</label>
+            <label class="form-label">Numéro du Compte</label>
             <input type="text" class="form-input" id="pmAccountNumber" placeholder="ex: +509 3701-0000">
           </div>
         </div>
 
         <div class="form-group">
-          <label class="form-label">Enstriksyon <span style="color:#6b7280;font-weight:400;">(Opsyonèl)</span></label>
+          <label class="form-label">Instructions <span style="color:#6b7280;font-weight:400;">(Optionnel)</span></label>
           <textarea class="form-textarea" id="pmInstructions" rows="2"
-            placeholder="ex: Voye kòb la sou nimewo sa a epi mete 'TRAPOSA' nan nòt la"></textarea>
+            placeholder="ex: Envoyez l'argent sur ce numéro et mettez 'TRAPOSA' dans la note"></textarea>
         </div>
 
         <div class="form-group">
-          <label class="form-label">URL Logo <span style="color:#6b7280;font-weight:400;">(Opsyonèl — mete URL foto logo a)</span></label>
+          <label class="form-label">URL du Logo <span style="color:#6b7280;font-weight:400;">(Optionnel — entrez l'URL de l'image du logo)</span></label>
           <input type="url" class="form-input" id="pmLogoUrl" placeholder="https://...">
+          <div style="margin-top:0.5rem;">
+            <label class="btn btn-outline" style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.875rem;">
+              <i data-lucide="upload" style="width:16px;height:16px;"></i>
+              <span>Uploader le Logo</span>
+              <input type="file" id="pmLogoFile" accept="image/*" style="display:none;">
+            </label>
+            <span id="uploadStatus" style="margin-left:0.75rem;font-size:0.8rem;color:#6b7280;"></span>
+          </div>
           <div class="logo-preview-wrap" id="logoPreview"></div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Non Icòn Lucide <span style="color:#6b7280;font-weight:400;">(si pa gen logo)</span></label>
+            <label class="form-label">Nom de l'Icône Lucide <span style="color:#6b7280;font-weight:400;">(si pas de logo)</span></label>
             <input type="text" class="form-input" id="pmIconName" value="credit-card" placeholder="credit-card">
           </div>
           <div class="form-group">
-            <label class="form-label">Ò Afichaj</label>
+            <label class="form-label">Ordre d'Affichage</label>
             <input type="number" class="form-input" id="pmDisplayOrder" value="0" min="0">
           </div>
         </div>
@@ -188,12 +197,12 @@
             <input type="checkbox" id="pmIsActive" checked>
             <span class="toggle-slider"></span>
           </label>
-          <label for="pmIsActive" style="cursor:pointer;font-weight:500;">Metòd Aktif (parèt nan don an)</label>
+          <label for="pmIsActive" style="cursor:pointer;font-weight:500;">Méthode Active (apparaît dans les dons)</label>
         </div>
 
         <div class="modal-actions" style="margin-top:1.5rem;">
-          <button type="button" class="btn btn-outline" onclick="closeModal()">Anile</button>
-          <button type="submit" class="btn btn-primary">Sove</button>
+          <button type="button" class="btn btn-outline" onclick="closeModal()">Annuler</button>
+          <button type="submit" class="btn btn-primary">Sauvegarder</button>
         </div>
       </form>
     </div>

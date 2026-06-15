@@ -99,7 +99,7 @@ function initScrollEffects() {
 // Language switcher
 function initLanguageSwitcher() {
   const langButtons = document.querySelectorAll('.lang-btn');
-  const currentLang = localStorage.getItem('traposa-lang') || 'HT';
+  const currentLang = localStorage.getItem('traposa-lang') || 'FR';
 
   langButtons.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.lang === currentLang);
@@ -210,6 +210,7 @@ const translations = {
     news_badge_success:'Siksè', projects_sort:'Triye:',
     don_page_title:'Fè Yon Don', don_page_subtitle:'Chak kontribisyon ka chanje lavi yon timoun vilnerab ann Ayiti.',
     don_step1:'1. Chwazi Koz ou vle sipote', don_step2:'Chwazi Montant', don_step3:'Metòd Pèman', don_step4:'Enfòmasyon Ou',
+    cause_general_title:'Jeneral TRAPOSA / Autres', cause_general_desc:'Sipòte òganizasyon an jeneralman oswa yon lòt koz pa lis la',
     cause1_title:'Edikasyon Timoun', cause1_desc:'Asire aksè edikasyon pou tout timoun yo',
     cause2_title:'Sante Kominote', cause2_desc:'Sèvis sante debaz pou kominote vilnerab',
     cause3_title:'Ijans Imanitè', cause3_desc:'Repon rapid pou kriz imanitè yo',
@@ -218,7 +219,28 @@ const translations = {
     don_submit:'Kontribye Kounye a', don_summary_title:'Rezime Don', don_recent:'Dènye don',
     don_summary_cause:'Koz:', don_summary_amount:'Montant:', don_summary_total:'Total:',
     don_thanks_title:'Mèsi pou Don Ou a!', don_thanks_desc:'Kontribisyon ou pral ede nou kontinye travay nou pou timoun vilnerab yo.',
-    don_back_home:'Retounen Akèy', don_receipt:'Telechaje Resi', don_footer:'© 2025 TRAPOSA — Pèman Sekirè'
+    don_back_home:'Retounen Akèy', don_receipt:'Telechaje Resi', don_footer:'© 2025 TRAPOSA — Pèman Sekirè',
+    don_error_amount_required:'Tanpri chwazi yon montan.',
+    don_error_payment_required:'Tanpri chwazi yon metòd pèman.',
+    don_error_stripe_unavailable:'Stripe pa disponib. Tanpri kontakte nou.',
+    don_error_plop_htg_only:'MonCash / NatCash / Kashpaw aksepte HTG sèlman. Tanpri chwazi HTG.',
+    don_error_plop_minimum:'Montan minimòm pou pèman mobil: 20 HTG.',
+    don_processing_payment:'Tretman pèman an...',
+    don_error_plop_generic:'Erè PLOP PLOP — tanpri eseye ankò.',
+    don_error_generic:'Yon erè te fèt. Tanpri eseye ankò.',
+    plop_intro_title:'Pèman mobil otomatik',
+    plop_intro_desc:'Klike sou <strong>"Kontribye Kounye a"</strong> — yon fenèt pèman sekirize ap ouvri otomatikman.',
+    plop_popup_blocked:'Pòp-ap ou a bloke.',
+    plop_open_payment:'Ouvri pèman an',
+    plop_window_closed:'Fenèt la fèmen. Pèman an poko konfime.',
+    plop_timeout:'Pèman an pran twò lontan. Klike "Verifye" pou eseye ankò.',
+    plop_overlay_title:'Pèman {method} an ap fèt…',
+    plop_overlay_hint:'Konplete pèman an nan fenèt ki ouvri a. Paj sa a ap verifye otomatikman.',
+    plop_verify_payment:'Verifye pèman an',
+    plop_cancel:'Anile',
+    plop_verifying:'Verifikasyon…',
+    plop_not_confirmed:'Pèman an poko konfime. Eseye ankò nan kèk segonn.',
+    plop_verify_again:'Verifye ankò'
   },
   FR: {
     nav_home:'Accueil', nav_mission:'Mission', nav_projects:'Projets', nav_news:'Actualités',
@@ -294,6 +316,7 @@ const translations = {
     news_badge_success:'Succès', projects_sort:'Trier :',
     don_page_title:'Faire un Don', don_page_subtitle:'Chaque contribution peut changer la vie d\'un enfant vulnérable en Haïti.',
     don_step1:'1. Choisissez la Cause à Soutenir', don_step2:'Choisissez le Montant', don_step3:'Mode de Paiement', don_step4:'Vos Informations',
+    cause_general_title:'TRAPOSA Général / Autres', cause_general_desc:'Soutenir l\'organisation en général ou une autre cause non listée',
     cause1_title:'Éducation des Enfants', cause1_desc:'Assurer l\'accès à l\'éducation pour tous les enfants',
     cause2_title:'Santé Communautaire', cause2_desc:'Services de santé de base pour les communautés vulnérables',
     cause3_title:'Urgence Humanitaire', cause3_desc:'Réponse rapide aux crises humanitaires',
@@ -302,7 +325,28 @@ const translations = {
     don_submit:'Contribuer Maintenant', don_summary_title:'Résumé du Don', don_recent:'Derniers dons',
     don_summary_cause:'Cause :', don_summary_amount:'Montant :', don_summary_total:'Total :',
     don_thanks_title:'Merci pour Votre Don !', don_thanks_desc:'Votre contribution va nous aider à continuer notre travail pour les enfants vulnérables.',
-    don_back_home:'Retour à l\'Accueil', don_receipt:'Télécharger le Reçu', don_footer:'© 2025 TRAPOSA — Paiement Sécurisé'
+    don_back_home:'Retour à l\'Accueil', don_receipt:'Télécharger le Reçu', don_footer:'© 2025 TRAPOSA — Paiement Sécurisé',
+    don_error_amount_required:'Veuillez sélectionner un montant.',
+    don_error_payment_required:'Veuillez choisir une méthode de paiement.',
+    don_error_stripe_unavailable:'Stripe n’est pas disponible. Veuillez nous contacter.',
+    don_error_plop_htg_only:'MonCash / NatCash / Kashpaw acceptent uniquement les paiements en HTG. Veuillez choisir HTG.',
+    don_error_plop_minimum:'Montant minimum pour le paiement mobile : 20 HTG.',
+    don_processing_payment:'Traitement du paiement...',
+    don_error_plop_generic:'Erreur PLOP PLOP — veuillez réessayer.',
+    don_error_generic:'Une erreur est survenue. Veuillez réessayer.',
+    plop_intro_title:'Paiement mobile automatique',
+    plop_intro_desc:'Cliquez sur <strong>"Contribuer Maintenant"</strong> — une fenêtre de paiement sécurisée s’ouvrira automatiquement.',
+    plop_popup_blocked:'La fenêtre de paiement a été bloquée.',
+    plop_open_payment:'Ouvrir le paiement',
+    plop_window_closed:'La fenêtre a été fermée. Le paiement n’est pas encore confirmé.',
+    plop_timeout:'Le paiement prend trop de temps. Cliquez sur "Vérifier" pour réessayer.',
+    plop_overlay_title:'Paiement {method} en cours…',
+    plop_overlay_hint:'Complétez le paiement dans la fenêtre ouverte. Cette page vérifiera automatiquement.',
+    plop_verify_payment:'Vérifier le paiement',
+    plop_cancel:'Annuler',
+    plop_verifying:'Vérification…',
+    plop_not_confirmed:'Le paiement n’est pas encore confirmé. Réessayez dans quelques secondes.',
+    plop_verify_again:'Vérifier à nouveau'
   },
   EN: {
     nav_home:'Home', nav_mission:'Mission', nav_projects:'Projects', nav_news:'News',
@@ -378,6 +422,7 @@ const translations = {
     news_badge_success:'Success', projects_sort:'Sort:',
     don_page_title:'Make a Donation', don_page_subtitle:'Every contribution can change the life of a vulnerable child in Haiti.',
     don_step1:'1. Choose the Cause to Support', don_step2:'Choose Amount', don_step3:'Payment Method', don_step4:'Your Information',
+    cause_general_title:'TRAPOSA General / Others', cause_general_desc:'Support the organization in general or another cause not listed',
     cause1_title:'Children Education', cause1_desc:'Ensure access to education for all children',
     cause2_title:'Community Health', cause2_desc:'Basic health services for vulnerable communities',
     cause3_title:'Humanitarian Emergency', cause3_desc:'Rapid response to humanitarian crises',
@@ -386,7 +431,28 @@ const translations = {
     don_submit:'Contribute Now', don_summary_title:'Donation Summary', don_recent:'Recent donations',
     don_summary_cause:'Cause:', don_summary_amount:'Amount:', don_summary_total:'Total:',
     don_thanks_title:'Thank You for Your Donation!', don_thanks_desc:'Your contribution will help us continue our work for vulnerable children.',
-    don_back_home:'Back to Home', don_receipt:'Download Receipt', don_footer:'© 2025 TRAPOSA — Secure Payment'
+    don_back_home:'Back to Home', don_receipt:'Download Receipt', don_footer:'© 2025 TRAPOSA — Secure Payment',
+    don_error_amount_required:'Please select an amount.',
+    don_error_payment_required:'Please select a payment method.',
+    don_error_stripe_unavailable:'Stripe is not available. Please contact us.',
+    don_error_plop_htg_only:'MonCash / NatCash / Kashpaw only accept HTG. Please choose HTG.',
+    don_error_plop_minimum:'Minimum amount for mobile payment: 20 HTG.',
+    don_processing_payment:'Processing payment...',
+    don_error_plop_generic:'PLOP PLOP error — please try again.',
+    don_error_generic:'An error occurred. Please try again.',
+    plop_intro_title:'Automatic mobile payment',
+    plop_intro_desc:'Click <strong>"Contribute Now"</strong> — a secure payment window will open automatically.',
+    plop_popup_blocked:'Your payment popup was blocked.',
+    plop_open_payment:'Open payment',
+    plop_window_closed:'The window was closed. Payment is not confirmed yet.',
+    plop_timeout:'Payment is taking too long. Click "Verify" to try again.',
+    plop_overlay_title:'{method} payment in progress…',
+    plop_overlay_hint:'Complete the payment in the opened window. This page will verify automatically.',
+    plop_verify_payment:'Verify payment',
+    plop_cancel:'Cancel',
+    plop_verifying:'Verifying…',
+    plop_not_confirmed:'Payment is not confirmed yet. Try again in a few seconds.',
+    plop_verify_again:'Verify again'
   }
 };
 

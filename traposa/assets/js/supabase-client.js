@@ -1,7 +1,7 @@
 // TRAPOSA Supabase Client Configuration
 
-const SUPABASE_URL = 'https://silpnglpfzeoqkqvwdsn.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
+const SUPABASE_URL = 'https://oqjovwqmuulduuxhcnkc.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xam92d3FtdXVsZHV1eGhjbmtjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc4MjgzMTMsImV4cCI6MjA5MzQwNDMxM30.EoRywTWdX8k8ixYz6EmGcJFEwLpDft-LcjHnsgydnCc';
 
 const { createClient } = supabase;
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);

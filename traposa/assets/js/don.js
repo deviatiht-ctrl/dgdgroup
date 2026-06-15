@@ -1,4 +1,18 @@
 // TRAPOSA Donation Page JavaScript
+// Payment routing:
+//   moncash / natcash / kashpaw / all  → Automatic via PLOP PLOP API (redirect)
+//   stripe                              → Stripe card form (manual, client-side)
+//   bank / other                        → Manual instructions shown
+
+const PLOP_METHODS = new Set(['moncash', 'natcash', 'kashpaw', 'all']);
+
+function tr(key, vars = {}) {
+  let value = (typeof t === 'function') ? t(key) : key;
+  Object.entries(vars).forEach(([name, replacement]) => {
+    value = value.replaceAll(`{${name}}`, replacement);
+  });
+  return value;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initCauseSelection();
@@ -80,11 +94,12 @@ function formatCurrency(amount, currency = 'G') {
 // Cause selection
 function initCauseSelection() {
   const causeCards = document.querySelectorAll('.cause-card');
-  
+
   causeCards.forEach(card => {
     card.addEventListener('click', () => {
       causeCards.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
+
       updateSummary();
     });
   });
@@ -154,9 +169,9 @@ async function loadPaymentMethods() {
 // Fallback static methods if table doesn't exist yet
 function renderDefaultPaymentMethods() {
   renderPaymentMethods([
-    { id: 'moncash', type: 'moncash', name: 'MonCash',   icon_name: 'smartphone',  is_active: true },
-    { id: 'natcash', type: 'natcash', name: 'NatCash',   icon_name: 'wallet',      is_active: true },
-    { id: 'stripe',  type: 'stripe',  name: 'Kat Kredi', icon_name: 'credit-card', is_active: true },
+    { id: 'moncash', type: 'moncash', name: 'MonCash',        icon_name: 'smartphone',  is_active: true, is_automatic: true },
+    { id: 'natcash', type: 'natcash', name: 'NatCash',        icon_name: 'wallet',      is_active: true, is_automatic: true },
+    { id: 'stripe',  type: 'stripe',  name: 'Kat Kredi',      icon_name: 'credit-card', is_active: true, is_automatic: false },
   ]);
 }
 
@@ -167,7 +182,12 @@ function renderPaymentMethods(methods) {
 
   window._paymentMethods = methods;
 
-  container.innerHTML = methods.map((m, idx) => `
+  container.innerHTML = methods.map((m, idx) => {
+    const isAutomatic = m.is_automatic || PLOP_METHODS.has(m.type);
+    const badge = isAutomatic
+      ? `<span class="pm-auto-badge"><i data-lucide="zap" style="width:11px;height:11px;"></i> Auto</span>`
+      : '';
+    return `
     <label class="payment-method ${idx === 0 ? 'selected' : ''}" data-method-id="${m.id}">
       <input type="radio" name="payment" value="${m.type}" ${idx === 0 ? 'checked' : ''}>
       <div class="payment-icon">
@@ -177,8 +197,9 @@ function renderPaymentMethods(methods) {
         }
       </div>
       <span class="payment-label">${m.name}</span>
-    </label>
-  `).join('');
+      ${badge}
+    </label>`;
+  }).join('');
 
   if (typeof lucide !== 'undefined') lucide.createIcons();
 
@@ -214,25 +235,45 @@ function initPaymentMethods() {
   });
 }
 
-// Show account details or Stripe card based on selected method
+// Show correct UI panel based on selected payment method
 function showPaymentInfo(method) {
-  const infoBox  = document.getElementById('payment-info-box');
+  const infoBox     = document.getElementById('payment-info-box');
   const cardSection = document.getElementById('stripe-card-section');
+  const plopSection = document.getElementById('plop-redirect-section');
+
+  // Hide all panels first
+  if (cardSection) cardSection.style.display = 'none';
+  if (plopSection) plopSection.style.display = 'none';
+  if (infoBox)     infoBox.style.display     = 'none';
+
+  const isAutomatic = method.is_automatic || PLOP_METHODS.has(method.type);
 
   if (method.type === 'stripe') {
-    if (infoBox) infoBox.style.display = 'none';
+    // Stripe card form
     if (cardSection) cardSection.style.display = 'block';
     return;
   }
 
-  if (cardSection) cardSection.style.display = 'none';
-  if (!infoBox) return;
-
-  const hasDetails = method.account_name || method.account_number || method.instructions;
-  if (!hasDetails) {
-    infoBox.style.display = 'none';
+  if (isAutomatic) {
+    // PLOP PLOP automatic redirect — show PLOP info panel
+    if (plopSection) {
+      plopSection.style.display = 'block';
+      const nameEl = plopSection.querySelector('.plop-method-name');
+      const iconEl = plopSection.querySelector('.plop-method-icon');
+      if (nameEl) nameEl.textContent = method.name;
+      if (iconEl) {
+        iconEl.innerHTML = method.logo_url
+          ? `<img src="${method.logo_url}" alt="${method.name}" style="width:32px;height:32px;object-fit:contain;">`
+          : `<i data-lucide="${method.icon_name || 'smartphone'}"></i>`;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }
     return;
   }
+
+  // Manual methods (bank, other) — show account details
+  const hasDetails = method.account_name || method.account_number || method.instructions;
+  if (!hasDetails || !infoBox) return;
 
   infoBox.style.display = 'flex';
   infoBox.innerHTML = `
@@ -246,14 +287,14 @@ function showPaymentInfo(method) {
       <h4>${method.name}</h4>
       ${method.account_name ? `
         <div class="payment-info-account-row">
-          <span class="payment-info-label">Non Kont:</span>
+          <span class="payment-info-label">Nom du compte:</span>
           <span class="payment-info-value">${method.account_name}</span>
         </div>` : ''}
       ${method.account_number ? `
         <div class="payment-info-account-row">
-          <span class="payment-info-label">Nimewo:</span>
+          <span class="payment-info-label">Numéro:</span>
           <span class="payment-info-value">${method.account_number}</span>
-          <button class="payment-copy-btn" onclick="copyToClipboard('${method.account_number}')" title="Kopye">
+          <button class="payment-copy-btn" onclick="copyToClipboard('${method.account_number}')" title="Copier">
             <i data-lucide="copy"></i>
           </button>
         </div>` : ''}
@@ -332,85 +373,288 @@ function initDonationForm() {
   submitBtn.addEventListener('click', async (e) => {
     e.preventDefault();
 
-    const selectedCause = document.querySelector('.cause-card.selected');
+    const selectedCause   = document.querySelector('.cause-card.selected');
     const selectedPayment = document.querySelector('.payment-method.selected input');
-    const amount = getSelectedAmount();
-    const currency = document.querySelector('.currency-btn.selected')?.dataset.currency || 'HTG';
-    const donorName = document.querySelector('input[name="donor_name"]')?.value || null;
-    const donorEmail = document.querySelector('input[name="donor_email"]')?.value || null;
-    const donorPhone = document.querySelector('input[name="donor_phone"]')?.value || null;
-    const isAnonymous = document.querySelector('input[name="is_anonymous"]')?.checked || false;
+    const amount          = getSelectedAmount();
+    const currency        = document.querySelector('.currency-btn.selected')?.dataset.currency || 'HTG';
+    const donorName       = document.querySelector('input[name="donor_name"]')?.value  || null;
+    const donorEmail      = document.querySelector('input[name="donor_email"]')?.value || null;
+    const donorPhone      = document.querySelector('input[name="donor_phone"]')?.value || null;
+    const isAnonymous     = document.querySelector('input[name="is_anonymous"]')?.checked || false;
 
     if (!amount || amount <= 0) {
-      showError('Tanpri chwazi yon montan / Please select an amount');
+      showError(tr('don_error_amount_required'));
       return;
     }
-
     if (!selectedPayment) {
-      showError('Tanpri chwazi yon metòd pèman / Please select a payment method');
+      showError(tr('don_error_payment_required'));
       return;
     }
 
-    const isStripe = window.stripeUtils?.isStripeSelected();
+    const paymentType = selectedPayment.value;
+    const isPlop      = PLOP_METHODS.has(paymentType);
+    const isStripe    = paymentType === 'stripe';
+
     if (isStripe && !window.stripeUtils?.isReady()) {
-      showError('Stripe pa disponib. Tanpri kontakte nou. / Stripe is not available.');
+      showError(tr('don_error_stripe_unavailable'));
+      return;
+    }
+
+    // For PLOP methods, amount must be in HTG (minimum 20)
+    if (isPlop && currency !== 'HTG') {
+      showError(tr('don_error_plop_htg_only'));
+      return;
+    }
+    if (isPlop && amount < 20) {
+      showError(tr('don_error_plop_minimum'));
       return;
     }
 
     const donationData = {
-      donor_name: donorName,
-      donor_email: donorEmail,
-      donor_phone: donorPhone,
-      amount: amount,
-      currency: currency,
-      payment_method: selectedPayment.value,
-      cause_id: selectedCause?.dataset.causeId || null,
-      cause_name: selectedCause?.dataset.causeName || 'Jeneral TRAPOSA',
-      is_anonymous: isAnonymous,
-      status: 'pending'
+      donor_name:     donorName,
+      donor_email:    donorEmail,
+      donor_phone:    donorPhone,
+      amount,
+      currency,
+      payment_method: paymentType,
+      cause_id:       selectedCause?.dataset.causeId   || null,
+      cause_name:     selectedCause?.dataset.causeName || 'TRAPOSA Général',
+      is_anonymous:   isAnonymous,
+      status:         'pending',
     };
 
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span style="opacity:0.7;">Trete pèman...</span>';
+    submitBtn.innerHTML = `<span style="opacity:0.7;">${tr('don_processing_payment')}</span>`;
 
     try {
-      if (isStripe) {
-        // Charge the card via Edge Function + confirmCardPayment
-        const paymentIntent = await window.stripeUtils.confirmPayment({
+      // ── PLOP PLOP automatic redirect ───────────────────────────────────
+      if (isPlop) {
+        // 1. Save a pending donation record first to get an ID
+        const { data: don, error: donErr } = await supabase
+          ?.from('traposa_donations')
+          .insert([donationData])
+          .select('id')
+          .single();
+        if (donErr) throw donErr;
+
+        // 2. Call plop-payment Edge Function to initiate the transaction
+        const edgeUrl = `${window.SUPABASE_URL}/functions/v1/plop-payment`;
+        const plopRes = await fetch(edgeUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            action:         'initiate',
+            amount,
+            payment_method: paymentType,
+            donation_id:    don?.id,
+            donor_name:     donorName,
+            donor_email:    donorEmail,
+          }),
+        });
+
+        const plopData = await plopRes.json();
+        if (!plopRes.ok || !plopData.success) {
+          throw new Error(plopData.error || tr('don_error_plop_generic'));
+        }
+
+        // 3. Link the PLOP transaction record to the donation
+        if (plopData.plop_record_id && don?.id) {
+          await supabase
+            ?.from('traposa_donations')
+            .update({ plop_transaction_id: plopData.plop_record_id })
+            .eq('id', don.id);
+        }
+
+        // 4. Show the PLOP redirect panel with the payment URL
+        showPlopRedirect({
+          url:          plopData.url,
+          referenceId:  plopData.reference_id,
+          donationId:   don?.id,
+          methodName:   document.querySelector('.payment-method.selected .payment-label')?.textContent || paymentType,
           amount,
-          currency,
-          donorEmail,
-          donorName,
+        });
+
+        return; // Submit button re-enabled inside showPlopRedirect
+      }
+
+      // ── Stripe card payment ────────────────────────────────────────────
+      if (isStripe) {
+        const paymentIntent = await window.stripeUtils.confirmPayment({
+          amount, currency, donorEmail, donorName,
           causeName: donationData.cause_name,
         });
         donationData.stripe_payment_intent_id = paymentIntent.id;
         donationData.status = 'confirmed';
       }
 
-      // Save to Supabase
+      // ── Save donation (Stripe or manual bank/other) ────────────────────
       const { data, error } = await supabase
         ?.from('traposa_donations')
         .insert([donationData])
         .select()
         .single();
-
       if (error) throw error;
 
       showSuccessModal(donationData, data?.id);
 
-      if (!donationData.is_anonymous && donationData.donor_email) {
-        generateReceipt(donationData, data?.id);
-      }
-
     } catch (err) {
       console.error('Error processing donation:', err);
-      showError(err.message || 'Gen yon erè. Tanpri eseye ankò. / There was an error. Please try again.');
+      showError(err.message || tr('don_error_generic'));
     } finally {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = '<i data-lucide="lock" style="width: 18px; height: 18px;"></i><span data-i18n="don_submit">Kontribye Kounye a</span>';
+      submitBtn.innerHTML = `<i data-lucide="lock" style="width: 18px; height: 18px;"></i><span>${tr('don_submit')}</span>`;
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
   });
+}
+
+// ── PLOP in-page overlay + popup + auto-poll ─────────────────────────────
+// Opens the PLOP payment URL in a small popup window.
+// An overlay stays on the main page showing a spinner + polling every 3s.
+// When payment confirmed (or popup closed): overlay updates automatically.
+
+let _plopPollTimer  = null;
+let _plopPollCount  = 0;
+const PLOP_POLL_MAX = 80; // 80 × 3s = 4 minutes max
+
+function showPlopRedirect({ url, referenceId, donationId, methodName, amount }) {
+  const submitBtn = document.querySelector('.submit-donation-btn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = `<i data-lucide="lock" style="width:18px;height:18px;"></i><span>${tr('don_submit')}</span>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // Create/show full-page overlay
+  _showPlopOverlay(methodName, amount, referenceId, donationId);
+
+  // Open payment in popup (triggered by btn click already in progress — allowed)
+  const popup = window.open(
+    url,
+    'plop_payment',
+    'width=500,height=750,left=' + Math.round((screen.width - 500) / 2) +
+    ',top=' + Math.round((screen.height - 750) / 2) +
+    ',resizable=yes,scrollbars=yes'
+  );
+
+  if (!popup || popup.closed) {
+    // Popup blocked — show fallback link inside overlay
+    const hint = document.getElementById('plopOverlayHint');
+    if (hint) hint.innerHTML = `
+      ${tr('plop_popup_blocked')} <a href="${url}" target="_blank" rel="noopener" class="btn btn-primary" style="margin-top:.5rem;display:inline-flex;gap:.4rem;">
+        <i data-lucide="external-link"></i> ${tr('plop_open_payment')}
+      </a>`;
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+
+  // Start auto-polling every 3 seconds
+  _plopPollCount = 0;
+  clearInterval(_plopPollTimer);
+  _plopPollTimer = setInterval(async () => {
+    _plopPollCount++;
+
+    // Close popup check
+    const popupClosed = !popup || popup.closed;
+
+    const confirmed = await _callPlopVerify(referenceId);
+
+    if (confirmed) {
+      clearInterval(_plopPollTimer);
+      if (!popupClosed) { try { popup.close(); } catch(_) {} }
+      _hidePlopOverlay();
+      showSuccessModal({ payment_method: 'plop', amount, currency: 'HTG' }, donationId);
+      return;
+    }
+
+    // Popup closed without paying
+    if (popupClosed) {
+      clearInterval(_plopPollTimer);
+      const hint = document.getElementById('plopOverlayHint');
+      if (hint) hint.innerHTML = tr('plop_window_closed');
+      const manualBtn = document.getElementById('plopManualVerify');
+      if (manualBtn) manualBtn.style.display = 'inline-flex';
+      const spinner = document.getElementById('plopSpinner');
+      if (spinner) spinner.style.display = 'none';
+      return;
+    }
+
+    // Timeout
+    if (_plopPollCount >= PLOP_POLL_MAX) {
+      clearInterval(_plopPollTimer);
+      const hint = document.getElementById('plopOverlayHint');
+      if (hint) hint.innerHTML = tr('plop_timeout');
+      const manualBtn = document.getElementById('plopManualVerify');
+      if (manualBtn) manualBtn.style.display = 'inline-flex';
+      const spinner = document.getElementById('plopSpinner');
+      if (spinner) spinner.style.display = 'none';
+    }
+  }, 3000);
+}
+
+function _showPlopOverlay(methodName, amount, referenceId, donationId) {
+  let overlay = document.getElementById('plopPaymentOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'plopPaymentOverlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML = `
+    <div class="plop-overlay-backdrop"></div>
+    <div class="plop-overlay-card">
+      <div id="plopSpinner" class="plop-overlay-spinner">
+        <svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="#2d6a4f" stroke-width="4" stroke-dasharray="100 28" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.9s" repeatCount="indefinite"/></circle></svg>
+      </div>
+      <h3 class="plop-overlay-title">${tr('plop_overlay_title', { method: methodName })}</h3>
+      <p class="plop-overlay-amount">G${Number(amount).toLocaleString()} HTG</p>
+      <p id="plopOverlayHint" class="plop-overlay-hint">${tr('plop_overlay_hint')}</p>
+      <button id="plopManualVerify" class="btn btn-primary" style="display:none;margin-top:1rem;" onclick="_manualVerify('${referenceId}','${donationId || ''}')">
+        ${tr('plop_verify_payment')}
+      </button>
+      <button class="plop-overlay-cancel" onclick="_cancelPlopOverlay()">× ${tr('plop_cancel')}</button>
+    </div>
+  `;
+  overlay.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function _hidePlopOverlay() {
+  const overlay = document.getElementById('plopPaymentOverlay');
+  if (overlay) overlay.style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function _cancelPlopOverlay() {
+  clearInterval(_plopPollTimer);
+  _hidePlopOverlay();
+}
+
+async function _callPlopVerify(referenceId) {
+  try {
+    const res = await fetch(`${window.SUPABASE_URL}/functions/v1/plop-payment`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}` },
+      body: JSON.stringify({ action: 'verify', reference_id: referenceId }),
+    });
+    const data = await res.json();
+    return data.confirmed === true;
+  } catch { return false; }
+}
+
+async function _manualVerify(referenceId, donationId) {
+  const btn = document.getElementById('plopManualVerify');
+  if (btn) { btn.disabled = true; btn.textContent = tr('plop_verifying'); }
+  const confirmed = await _callPlopVerify(referenceId);
+  if (confirmed) {
+    _hidePlopOverlay();
+    showSuccessModal({ payment_method: 'plop', currency: 'HTG' }, donationId);
+  } else {
+    const hint = document.getElementById('plopOverlayHint');
+    if (hint) hint.innerHTML = `<strong style="color:#f59e0b;">${tr('plop_not_confirmed')}</strong>`;
+    if (btn) { btn.disabled = false; btn.textContent = tr('plop_verify_again'); }
+  }
 }
 
 // Show success modal
